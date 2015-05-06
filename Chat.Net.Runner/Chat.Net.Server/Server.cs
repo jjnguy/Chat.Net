@@ -24,6 +24,8 @@ namespace Chat.Net.Server
             {
                 var newConnection = serverSock.Accept();
                 var guid = Guid.NewGuid();
+                Console.WriteLine("Recieved connection - " + guid);
+                newConnection.Send(GetBytes(guid.ToString()));
                 _connections.Add(guid, newConnection);
 
                 Task.Run(() =>

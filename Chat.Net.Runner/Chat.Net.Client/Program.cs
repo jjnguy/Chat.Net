@@ -16,6 +16,14 @@ namespace Chat.Net.Client
 
             sock.Connect("localhost", 54545);
 
+            var buffer_ = new byte[1024];
+            sock.Receive(buffer_);
+            var guidText = GetString(buffer_);
+
+            var guid = Guid.Parse(guidText);
+
+            Console.WriteLine("Im - " + guid);
+
             Task.Run(() =>
             {
                 while (true)
@@ -49,7 +57,7 @@ namespace Chat.Net.Client
         {
             char[] chars = new char[bytes.Length / sizeof(char)];
             System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
-            return new string(chars);
+            return new string(chars).Replace(((char)0).ToString(), "");
         }
     }
 }
