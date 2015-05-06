@@ -32,17 +32,27 @@ namespace Chat.Net.Client
                     sock.Receive(buffer);
 
                     var text = GetString(buffer);
-                    if (!string.IsNullOrWhiteSpace(text))
-                    {
-                        Console.WriteLine(text.Trim().Replace(((char)0) + "", ""));
-                    }
+                    Console.Write(text);
                 }
             });
 
             while (true)
             {
-                var text = Console.ReadLine();
-                sock.Send(GetBytes(text.Trim()));
+                var key = ConvertKeyCharToString(Console.ReadKey(true).KeyChar);
+                Console.Write(key);
+                sock.Send(GetBytes(key));
+            }
+        }
+
+        private static string ConvertKeyCharToString(char key)
+        {
+            switch (key)
+            {
+                case '\r':
+                case '\n':
+                    return "\r\n";
+                default:
+                    return key.ToString();
             }
         }
 

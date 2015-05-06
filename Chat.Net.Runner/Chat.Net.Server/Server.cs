@@ -35,12 +35,9 @@ namespace Chat.Net.Server
                         var buffer = new byte[1024];
                         newConnection.Receive(buffer);
                         var text = GetString(buffer);
-                        if (!string.IsNullOrWhiteSpace(text))
+                        foreach (var socket in _connections.Where(con => con.Key != guid))
                         {
-                            foreach (var socket in _connections.Where(con => con.Key != guid))
-                            {
-                                socket.Value.Send(GetBytes(text.Trim().Replace(((char)0) + "", "")));
-                            }
+                            socket.Value.Send(GetBytes(text));
                         }
                     }
                 });
@@ -58,7 +55,7 @@ namespace Chat.Net.Server
         {
             char[] chars = new char[bytes.Length / sizeof(char)];
             System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
-            return new string(chars);
+            return new string(chars).Replace(((char)0).ToString(), "");
         }
     }
 }
