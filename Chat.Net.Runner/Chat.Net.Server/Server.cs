@@ -24,31 +24,34 @@ namespace Chat.Net.Server
             while (true)
             {
                 var newConnection = new SimpleSocket(serverSock.Accept());
-                var guid = Guid.NewGuid();
-                Console.WriteLine("Recieved connection - " + guid);
-
-                newConnection.Send(new Protocol.Message
+                Task.Run(() =>
                 {
-                    Data = guid.ToString(),
-                    Type = MessageType.ConnectionRecieved,
-                });
+                    var guid = Guid.NewGuid();
+                    Console.WriteLine("Recieved connection - " + guid);
 
-                var roomRequestMessage = newConnection.Receive();
-                if (roomRequestMessage.Type.Name != MessageType.RoomRequest.Name)
-                {
-                    throw new ProtocolViolationException("Expected room request, recieved: " + roomRequestMessage.Type.Name);
-                }
-                if (!_rooms.ContainsKey(roomRequestMessage.Data))
-                {
-                    _rooms[roomRequestMessage.Data] = new ChatRoom();
-                }
+                    newConnection.Send(new Protocol.Message
+                    {
+                        Data = guid.ToString(),
+                        Type = MessageType.ConnectionRecieved,
+                    });
 
-                _rooms[roomRequestMessage.Data].Join(guid, newConnection);
+                    var roomRequestMessage = newConnection.Receive<Protocol.Message>();
+                    if (roomRequestMessage.Type.Name != MessageType.RoomRequest.Name)
+                    {
+                        throw new ProtocolViolationException("Expected room request, recieved: " + roomRequestMessage.Type.Name);
+                    }
+                    if (!_rooms.ContainsKey(roomRequestMessage.Data))
+                    {
+                        _rooms[roomRequestMessage.Data] = new ChatRoom();
+                    }
 
-                newConnection.Send(new Protocol.Message
-                {
-                    Data = roomRequestMessage.Data,
-                    Type = MessageType.RoomJoined,
+                    _rooms[roomRequestMessage.Data].Join(guid, newConnection);
+
+                    newConnection.Send(new Protocol.Message
+                    {
+                        Data = roomRequestMessage.Data,
+                        Type = MessageType.RoomJoined,
+                    });
                 });
             }
         }
@@ -66,7 +69,7 @@ namespace Chat.Net.Server
             {
                 while (true)
                 {
-                    var message = newConnection.Receive();
+                    var message = newConnection.Receive<Protocol.Message>();
                     if (message.Type.Name != MessageType.Message.Name)
                     {
                         throw new ProtocolViolationException("Expected a message, but recieved message of type: " + message.Type);

@@ -18,7 +18,7 @@ namespace Chat.Net.Protocol
         }
 
         private readonly byte[] buffer = new byte[1024];
-        public Message Receive()
+        public T Receive<T>() where T : Message
         {
             var rawMessage = "";
             var bytesRead = 0;
@@ -30,7 +30,12 @@ namespace Chat.Net.Protocol
                 if (bytesRead != buffer.Length) break;
             }
 
-            return JsonConvert.DeserializeObject<Message>(rawMessage);
+            return JsonConvert.DeserializeObject<T>(rawMessage);
+        }
+
+        public Message Receive()
+        {
+            return Receive<Message>();
         }
 
         public void Send(Message message)

@@ -4,15 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7709B245-381C-4F60-AC63-6B4367157387}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{8EE78851-EF4B-4571-A12F-5D2CD1DAF331}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Chat.Net.Client</RootNamespace>
-    <AssemblyName>Chat.Net.Client</AssemblyName>
+    <RootNamespace>Chat.Net.Client.Console</RootNamespace>
+    <AssemblyName>Chat.Net.Client.Console</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -22,6 +23,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -39,10 +41,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DaClient.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Chat.Net.Client\Chat.Net.Client.csproj">
+      <Project>{7709B245-381C-4F60-AC63-6B4367157387}</Project>
+      <Name>Chat.Net.Client</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Chat.Net.Protocol\Chat.Net.Protocol.csproj">
       <Project>{41E28248-AA50-4AC0-B496-B0CF5DF0A088}</Project>
       <Name>Chat.Net.Protocol</Name>
