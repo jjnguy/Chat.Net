@@ -20,9 +20,12 @@ namespace Chat.Net.Client.Wpf
     /// </summary>
     public partial class MainWindow : Window
     {
+        private DaClient _client;
+
         public MainWindow()
         {
-
+            _client = new DaClient();
+            _client.Connect();
 
             InitializeComponent();
         }
