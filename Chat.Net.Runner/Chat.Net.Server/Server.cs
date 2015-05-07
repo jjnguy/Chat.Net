@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Chat.Net.Protocol;
 
 namespace Chat.Net.Server
 {
@@ -13,7 +14,7 @@ namespace Chat.Net.Server
     {
         private Socket serverSock = new Socket(SocketType.Stream, ProtocolType.Tcp);
 
-        private Dictionary<string, ChatRoom> _rooms = new Dictionary<string, ChatRoom>(); 
+        private Dictionary<string, ChatRoom> _rooms = new Dictionary<string, ChatRoom>();
 
         public BaseServer()
         {
@@ -22,42 +23,42 @@ namespace Chat.Net.Server
 
             while (true)
             {
-                var newConnection = serverSock.Accept();
+                var newConnection = new SimpleSocket(serverSock.Accept());
                 var guid = Guid.NewGuid();
                 Console.WriteLine("Recieved connection - " + guid);
-                newConnection.Send(GetBytes(guid.ToString()));
-                var ackBuffer = new byte[1024];
-                newConnection.Receive(ackBuffer);
-                var ackString = GetString(ackBuffer);
-                if (!_rooms.ContainsKey(ackString))
+
+                newConnection.Send(new Protocol.Message
                 {
-                    _rooms[ackString] = new ChatRoom();
+                    Data = guid.ToString(),
+                    Type = MessageType.ConnectionRecieved,
+                });
+
+                var roomRequestMessage = newConnection.Receive();
+                if (roomRequestMessage.Type.Name != MessageType.RoomRequest.Name)
+                {
+                    throw new ProtocolViolationException("Expected room request, recieved: " + roomRequestMessage.Type.Name);
+                }
+                if (!_rooms.ContainsKey(roomRequestMessage.Data))
+                {
+                    _rooms[roomRequestMessage.Data] = new ChatRoom();
                 }
 
-                _rooms[ackString].Join(guid, newConnection);
+                _rooms[roomRequestMessage.Data].Join(guid, newConnection);
+
+                newConnection.Send(new Protocol.Message
+                {
+                    Data = roomRequestMessage.Data,
+                    Type = MessageType.RoomJoined,
+                });
             }
-        }
-
-        public static byte[] GetBytes(string str)
-        {
-            byte[] bytes = new byte[str.Length * sizeof(char)];
-            System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
-            return bytes;
-        }
-
-        static string GetString(byte[] bytes)
-        {
-            char[] chars = new char[bytes.Length / sizeof(char)];
-            System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
-            return new string(chars).Replace(((char)0).ToString(), "");
         }
     }
 
     public class ChatRoom
     {
-        private Dictionary<Guid, Socket> _connections = new Dictionary<Guid, Socket>();
+        private Dictionary<Guid, SimpleSocket> _connections = new Dictionary<Guid, SimpleSocket>();
 
-        public void Join(Guid id, Socket newConnection)
+        public void Join(Guid id, SimpleSocket newConnection)
         {
             _connections[id] = newConnection;
 
@@ -65,29 +66,17 @@ namespace Chat.Net.Server
             {
                 while (true)
                 {
-                    var buffer = new byte[1024];
-                    newConnection.Receive(buffer);
-                    var text = GetString(buffer);
+                    var message = newConnection.Receive();
+                    if (message.Type.Name != MessageType.Message.Name)
+                    {
+                        throw new ProtocolViolationException("Expected a message, but recieved message of type: " + message.Type);
+                    }
                     foreach (var socket in _connections.Where(con => con.Key != id))
                     {
-                        socket.Value.Send(GetBytes(text));
+                        socket.Value.Send(message);
                     }
                 }
             });
-        }
-
-        public static byte[] GetBytes(string str)
-        {
-            byte[] bytes = new byte[str.Length * sizeof(char)];
-            System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
-            return bytes;
-        }
-
-        static string GetString(byte[] bytes)
-        {
-            char[] chars = new char[bytes.Length / sizeof(char)];
-            System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
-            return new string(chars).Replace(((char)0).ToString(), "");
         }
     }
 }

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using Chat.Net.Protocol;
 
 namespace Chat.Net.Client
 {
@@ -13,29 +15,40 @@ namespace Chat.Net.Client
         {
             Console.WriteLine("Client!");
             var sock = new Socket(SocketType.Stream, ProtocolType.Tcp);
-
             sock.Connect("localhost", 54545);
 
-            var buffer_ = new byte[1024];
-            sock.Receive(buffer_);
-            var guidText = GetString(buffer_);
+            var simpleSock = new SimpleSocket(sock);
 
-            var guid = Guid.Parse(guidText);
+            var guidMessage = simpleSock.Receive();
+
+            var guid = Guid.Parse(guidMessage.Data);
+
             Console.WriteLine("Im - " + guid);
 
             Console.WriteLine("Enter room name:");
 
-            sock.Send(GetBytes(Console.ReadLine()));
+            simpleSock.Send(new Message
+            {
+                Data = Console.ReadLine(),
+                Type = MessageType.RoomRequest,
+            });
+
+            var roomAck = simpleSock.Receive();
+            if (roomAck.Type.Name != MessageType.RoomJoined.Name)
+            {
+                throw new ProtocolViolationException("Expected room join ack. Received: " + roomAck.Type.Name);
+            }
 
             Task.Run(() =>
             {
                 while (true)
                 {
-                    var buffer = new byte[1024];
-                    sock.Receive(buffer);
-
-                    var text = GetString(buffer);
-                    Console.Write(text);
+                    var message = simpleSock.Receive();
+                    if (roomAck.Type.Name != MessageType.RoomJoined.Name)
+                    {
+                        throw new ProtocolViolationException("Expected message. Received: " + message.Type.Name);
+                    }
+                    Console.Write(message.Data);
                 }
             });
 
@@ -43,7 +56,11 @@ namespace Chat.Net.Client
             {
                 var key = ConvertKeyCharToString(Console.ReadKey(true).KeyChar);
                 Console.Write(key);
-                sock.Send(GetBytes(key));
+                simpleSock.Send(new Message
+                {
+                    Type = MessageType.Message,
+                    Data = key
+                });
             }
         }
 

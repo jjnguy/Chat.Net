@@ -53,6 +53,12 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Chat.Net.Protocol\Chat.Net.Protocol.csproj">
+      <Project>{41E28248-AA50-4AC0-B496-B0CF5DF0A088}</Project>
+      <Name>Chat.Net.Protocol</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
