@@ -13,7 +13,7 @@ namespace Chat.Net.Server
     {
         private Socket serverSock = new Socket(SocketType.Stream, ProtocolType.Tcp);
 
-        private Dictionary<Guid, Socket> _connections = new Dictionary<Guid, Socket>();
+        private Dictionary<string, ChatRoom> _rooms = new Dictionary<string, ChatRoom>(); 
 
         public BaseServer()
         {
@@ -26,22 +26,54 @@ namespace Chat.Net.Server
                 var guid = Guid.NewGuid();
                 Console.WriteLine("Recieved connection - " + guid);
                 newConnection.Send(GetBytes(guid.ToString()));
-                _connections.Add(guid, newConnection);
-
-                Task.Run(() =>
+                var ackBuffer = new byte[1024];
+                newConnection.Receive(ackBuffer);
+                var ackString = GetString(ackBuffer);
+                if (!_rooms.ContainsKey(ackString))
                 {
-                    while (true)
-                    {
-                        var buffer = new byte[1024];
-                        newConnection.Receive(buffer);
-                        var text = GetString(buffer);
-                        foreach (var socket in _connections.Where(con => con.Key != guid))
-                        {
-                            socket.Value.Send(GetBytes(text));
-                        }
-                    }
-                });
+                    _rooms[ackString] = new ChatRoom();
+                }
+
+                _rooms[ackString].Join(guid, newConnection);
             }
+        }
+
+        public static byte[] GetBytes(string str)
+        {
+            byte[] bytes = new byte[str.Length * sizeof(char)];
+            System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
+            return bytes;
+        }
+
+        static string GetString(byte[] bytes)
+        {
+            char[] chars = new char[bytes.Length / sizeof(char)];
+            System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
+            return new string(chars).Replace(((char)0).ToString(), "");
+        }
+    }
+
+    public class ChatRoom
+    {
+        private Dictionary<Guid, Socket> _connections = new Dictionary<Guid, Socket>();
+
+        public void Join(Guid id, Socket newConnection)
+        {
+            _connections[id] = newConnection;
+
+            Task.Run(() =>
+            {
+                while (true)
+                {
+                    var buffer = new byte[1024];
+                    newConnection.Receive(buffer);
+                    var text = GetString(buffer);
+                    foreach (var socket in _connections.Where(con => con.Key != id))
+                    {
+                        socket.Value.Send(GetBytes(text));
+                    }
+                }
+            });
         }
 
         public static byte[] GetBytes(string str)

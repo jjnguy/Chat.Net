@@ -21,8 +21,11 @@ namespace Chat.Net.Client
             var guidText = GetString(buffer_);
 
             var guid = Guid.Parse(guidText);
-
             Console.WriteLine("Im - " + guid);
+
+            Console.WriteLine("Enter room name:");
+
+            sock.Send(GetBytes(Console.ReadLine()));
 
             Task.Run(() =>
             {
