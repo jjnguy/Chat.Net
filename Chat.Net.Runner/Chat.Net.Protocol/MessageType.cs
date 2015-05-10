@@ -9,8 +9,10 @@ namespace Chat.Net.Protocol
     public class MessageType
     {
         public static readonly MessageType ConnectionRecieved = new MessageType("connection-recieved");
-        public static readonly MessageType RoomRequest = new MessageType("room-request");
+        public static readonly MessageType RoomJoinRequest = new MessageType("room-join-request");
+        public static readonly MessageType RoomLeaveRequest = new MessageType("room-leave-request");
         public static readonly MessageType RoomJoined = new MessageType("room-joined");
+        public static readonly MessageType RoomLeft = new MessageType("room-left");
         public static readonly MessageType Message = new MessageType("message");
 
         public string Name;
@@ -26,23 +28,6 @@ namespace Chat.Net.Protocol
         public override string ToString()
         {
             return Name;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null) return false;
-            if (ReferenceEquals(obj, this)) return true;
-
-            var casted = obj as MessageType;
-
-            if (casted == null) return false;
-
-            return casted.Name == this.Name;
-        }
-
-        public override int GetHashCode()
-        {
-            return Name.GetHashCode();
         }
     }
 }

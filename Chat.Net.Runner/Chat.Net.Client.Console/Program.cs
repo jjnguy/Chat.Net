@@ -11,36 +11,43 @@ namespace Chat.Net.Client
 {
     class Program
     {
+        private static List<Message> history = new List<Message>();
+
         static void Main(string[] args)
         {
             Console.WriteLine("Client!");
 
-            var client = new DaClient();
+            var client = new DaClient(new ConsoleMessageLogger());
 
-            client.Connect();
+            client.Connect("anna", message =>
+            {
+                history.Add(message);
+                RefreshConsole();
+            });
+
+            RefreshConsole();
 
             while (true)
             {
-                var key = ConvertKeyCharToString(Console.ReadKey(true).KeyChar);
-                Console.Write(key);
+                var newMessage = Console.ReadLine();
                 client.Send(new Message
                 {
                     Type = MessageType.Message,
-                    Data = key
+                    Data = newMessage,
+                    Client = client.Id,
                 });
             }
         }
 
-        private static string ConvertKeyCharToString(char key)
+        static void RefreshConsole()
         {
-            switch (key)
+            Console.Clear();
+            foreach (var message in history)
             {
-                case '\r':
-                case '\n':
-                    return "\r\n";
-                default:
-                    return key.ToString();
+                Console.WriteLine("--------------------");
+                Console.WriteLine("> " + message.Data);
             }
+            Console.WriteLine("===================");
         }
     }
 }

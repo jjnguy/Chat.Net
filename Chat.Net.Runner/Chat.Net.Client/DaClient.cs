@@ -11,28 +11,32 @@ namespace Chat.Net.Client
 {
     public class DaClient
     {
+        private IMessageLogger _logger;
+
+        public DaClient(IMessageLogger logger)
+        {
+            _logger = logger;
+        }
+
         private SimpleSocket _simpleSock;
 
-        public void Connect(string host = "localhost")
+        public Guid? Id;
+
+        public void Connect(string roomName, Action<Message> messageHandler, string host = "localhost")
         {
             var sock = new Socket(SocketType.Stream, ProtocolType.Tcp);
             sock.Connect(host, 54545);
 
             // connection handshake
-            _simpleSock = new SimpleSocket(sock);
+            _simpleSock = new SimpleSocket(sock, _logger);
 
             var guidMessage = _simpleSock.Receive<Message>();
-
-            var guid = Guid.Parse(guidMessage.Data);
-
-            Console.WriteLine("Im - " + guid);
-
-            Console.WriteLine("Enter room name:");
+            Id = Guid.Parse(guidMessage.Data);
 
             _simpleSock.Send(new Message
             {
-                Data = Console.ReadLine(),
-                Type = MessageType.RoomRequest,
+                Data = roomName,
+                Type = MessageType.RoomJoinRequest,
             });
 
             var roomAck = _simpleSock.Receive<Message>();
@@ -48,11 +52,8 @@ namespace Chat.Net.Client
                 while (true)
                 {
                     var message = _simpleSock.Receive<Message>();
-                    if (roomAck.Type.Name != MessageType.RoomJoined.Name)
-                    {
-                        throw new ProtocolViolationException("Expected message. Received: " + message.Type.Name);
-                    }
-                    Console.Write(message.Data);
+                    if (message == null) continue;
+                    messageHandler(message);
                 }
             });
         }

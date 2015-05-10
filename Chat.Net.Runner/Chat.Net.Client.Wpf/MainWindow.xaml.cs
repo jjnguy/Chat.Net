@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Chat.Net.Protocol;
 
 namespace Chat.Net.Client.Wpf
 {
@@ -24,8 +25,11 @@ namespace Chat.Net.Client.Wpf
 
         public MainWindow()
         {
-            _client = new DaClient();
-            _client.Connect();
+            _client = new DaClient(new ConsoleMessageLogger());
+            _client.Connect("a_room", message =>
+            {
+                Console.WriteLine("Got a message");
+            });
 
             InitializeComponent();
         }

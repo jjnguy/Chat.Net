@@ -49,6 +49,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Chat.Net.Protocol\Chat.Net.Protocol.csproj">
+      <Project>{41e28248-aa50-4ac0-b496-b0cf5df0a088}</Project>
+      <Name>Chat.Net.Protocol</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Chat.Net.Server\Chat.Net.Server.csproj">
       <Project>{434B69F2-30D9-40AE-8537-0C034C4DC7F5}</Project>
       <Name>Chat.Net.Server</Name>
