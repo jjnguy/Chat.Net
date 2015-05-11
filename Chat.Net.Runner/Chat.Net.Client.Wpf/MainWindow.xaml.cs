@@ -26,12 +26,27 @@ namespace Chat.Net.Client.Wpf
         public MainWindow()
         {
             _client = new DaClient(new ConsoleMessageLogger());
-            _client.Connect("a_room", message =>
+            _client.Connect("username", "a_room", message =>
             {
                 Console.WriteLine("Got a message");
             });
 
             InitializeComponent();
+        }
+    }
+
+    public class NoOpLogger : IMessageLogger
+    {
+        public void MessageRecieved(Message m)
+        {
+        }
+
+        public void MessageSent(Message m)
+        {
+        }
+
+        public void LogException(Exception e)
+        {
         }
     }
 }

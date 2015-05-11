@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using Chat.Net.Client;
 using Newtonsoft.Json;
 
 namespace Chat.Net.Protocol
@@ -22,7 +21,7 @@ namespace Chat.Net.Protocol
         }
 
         private readonly byte[] buffer = new byte[1024];
-        public T Receive<T>() where T : Message
+        private T Receive<T>() where T : Message
         {
             try
             {
@@ -57,6 +56,28 @@ namespace Chat.Net.Protocol
         public Message Receive()
         {
             return Receive<Message>();
+        }
+
+        public Message ReceiveRequired(MessageType requiredMessage, int retryCount = 1)
+        {
+            var count = -1;
+            Message message = null;
+            do
+            {
+                message = Receive();
+                count++;
+            } while (message == null || count >= retryCount);
+
+            if (message == null)
+            {
+                throw new MissingMessageProtocolViolationException(requiredMessage);
+            }
+            if (message.Type.Name != requiredMessage.Name)
+            {
+                throw new SimpleProtocolViolationException(requiredMessage, message.Type);
+            }
+
+            return message;
         }
 
         public void Send(Message message)

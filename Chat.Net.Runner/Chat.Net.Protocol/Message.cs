@@ -11,6 +11,7 @@ namespace Chat.Net.Protocol
         public MessageType Type { get; set; }
 
         public Guid? Client { get; set; }
+        public string ClientName { get; set; }
 
         public string Data { get; set; }
     }

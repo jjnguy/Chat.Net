@@ -48,6 +48,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Chat.Net.Client.Wpf\Chat.Net.Client.Wpf.csproj">
+      <Project>{F5A463CB-6749-427C-A16D-50D7BFFF05C2}</Project>
+      <Name>Chat.Net.Client.Wpf</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Chat.Net.Client\Chat.Net.Client.csproj">
       <Project>{7709B245-381C-4F60-AC63-6B4367157387}</Project>
       <Name>Chat.Net.Client</Name>

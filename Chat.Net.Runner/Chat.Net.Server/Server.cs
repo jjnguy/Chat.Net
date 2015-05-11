@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Chat.Net.Client;
 using Chat.Net.Protocol;
 
 namespace Chat.Net.Server
@@ -36,7 +35,6 @@ namespace Chat.Net.Server
                 Task.Run(() =>
                 {
                     var guid = Guid.NewGuid();
-                    Console.WriteLine("Recieved connection - " + guid);
 
                     newConnection.Send(new Message
                     {
@@ -47,11 +45,11 @@ namespace Chat.Net.Server
                     Message roomRequestMessage = null;
                     while (roomRequestMessage == null)
                     {
-                        roomRequestMessage = newConnection.Receive<Message>();
+                        roomRequestMessage = newConnection.Receive();
                     }
                     if (roomRequestMessage.Type.Name != MessageType.RoomJoinRequest.Name)
                     {
-                        throw new ProtocolViolationException("Expected room request, recieved: " + roomRequestMessage.Type.Name);
+                        throw new SimpleProtocolViolationException(MessageType.RoomJoinRequest, roomRequestMessage.Type);
                     }
                     if (!_rooms.ContainsKey(roomRequestMessage.Data))
                     {
@@ -101,7 +99,7 @@ namespace Chat.Net.Server
 
                         if (message.Type.Name != MessageType.Message.Name)
                         {
-                            throw new ProtocolViolationException("Expected a message, but recieved message of type: " + message.Type);
+                            throw new SimpleProtocolViolationException(MessageType.Message, message.Type);
                         }
 
                         foreach (var socket in _connections.Where(con => con.Key != id))

@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using Chat.Net.Client.Wpf;
 using Chat.Net.Protocol;
 
 namespace Chat.Net.Client
@@ -15,27 +16,37 @@ namespace Chat.Net.Client
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Client!");
+            Console.SetWindowSize(120, 60);
 
-            var client = new DaClient(new ConsoleMessageLogger());
+            Console.WriteLine("Enter Ip Address:");
+            var ip = Console.ReadLine();
 
-            client.Connect("anna", message =>
+            Console.WriteLine("Enter name:");
+            var username = Console.ReadLine();
+
+            var client = new DaClient(new NoOpLogger());
+
+            client.Connect(username, "anna", message =>
             {
                 history.Add(message);
                 RefreshConsole();
-            });
+            }, ip);
 
             RefreshConsole();
 
             while (true)
             {
                 var newMessage = Console.ReadLine();
-                client.Send(new Message
+                var message = new Message
                 {
                     Type = MessageType.Message,
                     Data = newMessage,
                     Client = client.Id,
-                });
+                    ClientName = "me",
+                };
+                client.Send(message);
+                history.Add(message);
+                RefreshConsole();
             }
         }
 
@@ -45,9 +56,10 @@ namespace Chat.Net.Client
             foreach (var message in history)
             {
                 Console.WriteLine("--------------------");
-                Console.WriteLine("> " + message.Data);
+                Console.WriteLine(message.ClientName + " > " + message.Data);
             }
             Console.WriteLine("===================");
+            Console.Write("me > ");
         }
     }
 }

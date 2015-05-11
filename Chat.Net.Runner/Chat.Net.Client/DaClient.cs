@@ -21,16 +21,18 @@ namespace Chat.Net.Client
         private SimpleSocket _simpleSock;
 
         public Guid? Id;
+        public string Username;
 
-        public void Connect(string roomName, Action<Message> messageHandler, string host = "localhost")
+        public void Connect(string username, string roomName, Action<Message> messageHandler, string host = "localhost")
         {
+            Username = username;
             var sock = new Socket(SocketType.Stream, ProtocolType.Tcp);
             sock.Connect(host, 54545);
 
             // connection handshake
             _simpleSock = new SimpleSocket(sock, _logger);
 
-            var guidMessage = _simpleSock.Receive<Message>();
+            var guidMessage = _simpleSock.Receive();
             Id = Guid.Parse(guidMessage.Data);
 
             _simpleSock.Send(new Message
@@ -39,10 +41,10 @@ namespace Chat.Net.Client
                 Type = MessageType.RoomJoinRequest,
             });
 
-            var roomAck = _simpleSock.Receive<Message>();
+            var roomAck = _simpleSock.Receive();
             if (roomAck.Type.Name != MessageType.RoomJoined.Name)
             {
-                throw new ProtocolViolationException("Expected room join ack. Received: " + roomAck.Type.Name);
+                throw new SimpleProtocolViolationException(MessageType.RoomJoined, roomAck.Type);
             }
 
             // handshake complete
@@ -51,7 +53,7 @@ namespace Chat.Net.Client
             {
                 while (true)
                 {
-                    var message = _simpleSock.Receive<Message>();
+                    var message = _simpleSock.Receive();
                     if (message == null) continue;
                     messageHandler(message);
                 }
@@ -60,7 +62,13 @@ namespace Chat.Net.Client
 
         public void Send(Message message)
         {
-            _simpleSock.Send(message);
+            _simpleSock.Send(new Message
+            {
+                Client = Id,
+                ClientName = Username,
+                Data = message.Data,
+                Type = message.Type,
+            });
         }
     }
 }

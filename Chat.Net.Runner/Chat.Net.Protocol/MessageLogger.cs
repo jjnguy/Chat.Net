@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Chat.Net.Protocol;
 
-namespace Chat.Net.Client
+namespace Chat.Net.Protocol
 {
     public interface IMessageLogger
     {
