@@ -23,30 +23,53 @@ namespace Chat.Net.Client.Wpf
     {
         private DaClient _client;
 
+        private List<Message> _history;
+
         public MainWindow()
         {
+            _history = new List<Message>();
             _client = new DaClient(new ConsoleMessageLogger());
-            _client.Connect("username", "a_room", message =>
+            _client.Connect("WPF", "anna", message =>
             {
-                Console.WriteLine("Got a message");
+                _history.Add(message);
+                Dispatcher.BeginInvoke(new RefreshUiDel(RefreshUi));
             });
 
             InitializeComponent();
         }
-    }
 
-    public class NoOpLogger : IMessageLogger
-    {
-        public void MessageRecieved(Message m)
+        private void Button_Click(object sender, RoutedEventArgs e)
         {
+            var message = new Message
+            {
+                Data = this.MessageText.Text,
+                Type = MessageType.Message,
+            };
+            _client.Send(message);
+            _history.Add(message);
+            RefreshUi();
         }
 
-        public void MessageSent(Message m)
+        private void RefreshUi()
         {
+            this.MessagesPanel.Children.Clear();
+            foreach (var message in _history)
+            {
+                var messagePanel = new ItemsControl
+                {
+                };
+                messagePanel.Items.Add(new Label
+                {
+                    Content = "From: " + (string.IsNullOrWhiteSpace(message.ClientName) ? "me" : message.ClientName),
+                });
+                messagePanel.Items.Add(new Label
+                {
+                    Content = message.Data,
+                });
+                this.MessagesPanel.Children.Add(messagePanel);
+            }
         }
 
-        public void LogException(Exception e)
-        {
-        }
+        delegate void RefreshUiDel();
     }
 }

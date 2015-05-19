@@ -18,19 +18,13 @@ namespace Chat.Net.Client
         {
             Console.SetWindowSize(120, 60);
 
-            Console.WriteLine("Enter Ip Address:");
-            var ip = Console.ReadLine();
-
-            Console.WriteLine("Enter name:");
-            var username = Console.ReadLine();
-
             var client = new DaClient(new NoOpLogger());
 
-            client.Connect(username, "anna", message =>
+            client.Connect("Console", "anna", message =>
             {
                 history.Add(message);
                 RefreshConsole();
-            }, ip);
+            });
 
             RefreshConsole();
 

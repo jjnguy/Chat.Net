@@ -3,6 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        
+        <StackPanel Name="MessagesPanel" HorizontalAlignment="Left" Height="251" Margin="10,10,0,0" VerticalAlignment="Top" Width="499"/>
+        <TextBox Name="MessageText" HorizontalAlignment="Left" Height="45" Margin="10,266,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="432"/>
+        <Button Content="Send" HorizontalAlignment="Left" Margin="447,266,0,0" VerticalAlignment="Top" Width="62" Height="45" Click="Button_Click"/>
+
     </Grid>
 </Window>
